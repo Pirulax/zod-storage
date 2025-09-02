@@ -3,15 +3,18 @@ import { Stringifier, ZodStorage, ZodStorageItem } from './types';
 import { JSONStringifier } from './json-stringifier';
 import { ZodStorageError, ZodStorageErrors } from './ZodStorageError';
 
-export class ZodStorageBuilder<T extends z.ZodRawShape> {
+type Shape = {
+	[key: string]: z.ZodTypeAny;
+};
 
+export class ZodStorageBuilder<T extends Shape> {
 	private items?: ZodStorage<z.infer<z.ZodObject<T>>>;
 	private keys?: Partial<Record<keyof T, string>> = undefined;
 	private provider: Storage = localStorage;
 	private stringifier: Stringifier = new JSONStringifier();
 	private namespace: string = "";
 
-	constructor(private storageSchema: z.ZodObject<T>) {}
+	constructor(private storageSchema: z.ZodObject<T>) { }
 
 	public withKeys(keys: Partial<Record<keyof T, string>>): ZodStorageBuilder<T> {
 		this.keys = keys;
@@ -39,8 +42,7 @@ export class ZodStorageBuilder<T extends z.ZodRawShape> {
 	}
 
 	private configureItems() {
-		const entries = Object.entries(this.storageSchema.shape);
-		entries.flatMap(([shapeKey, itemSchema]) => {
+		Object.entries(this.storageSchema.shape).map(([shapeKey, itemSchema]) => {
 			const key = this.namespace + (this.keys?.[shapeKey] ?? shapeKey);
 			const item: ZodStorageItem<z.infer<typeof itemSchema>> = {
 				get: () => {
