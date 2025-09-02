@@ -50,3 +50,4 @@ devenv.local.nix
 .pre-commit-config.yaml
 
 .yarn
+.nx
